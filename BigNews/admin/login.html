@@ -63,9 +63,9 @@
     <script>
         $(function() {
             $('.input_sub').on('click', function(e) {
-                e.preventDefault();
-                let useName = $('.input_txt').val().trim();
-                let password = $('.input_pass').val().trim();
+                e.preventDefault(); //阻断浏览器默认跳转行为
+                let useName = $('.input_txt').val().trim(); //获取文本框内容
+                let password = $('.input_pass').val().trim(); //获取文本框内容
 
                 //非空判断
                 if (useName == "" || password == "") {
@@ -74,6 +74,8 @@
                     return;
                 };
 
+
+                //发送ajax请求
                 $.ajax({
                     type: 'post',
                     url: BigNew.user_login,
