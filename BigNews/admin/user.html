@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="css/main.css">
     <script src="./libs/jquery-1.12.4.min.js"></script>
 
+    <script src="./libs/http.js"></script>
+
 </head>
 
 <body>
@@ -56,8 +58,7 @@
                 <div class="form-group">
                     <label for="inputEmail4" class="col-sm-2 control-label">密码：</label>
                     <div class="col-sm-4">
-                        <input type="password" name="password" class="form-control password" id="inputEmail4"
-                            value="12345678">
+                        <input type="password" name="password" class="form-control password" id="inputEmail4" value="12345678">
                     </div>
                 </div>
                 <div class="form-group">
@@ -68,6 +69,58 @@
             </form>
         </div>
     </div>
+    <script>
+        $(function() {
+            //一进入页面发送ajax请求
+            //获取到当前登录的用户信息
+            $.ajax({
+                type: 'get',
+                url: BigNew.user_detail,
+                success: function(backData) {
+                    //获取到当前登录的用户信息显示到相应的标签中
+                    for (let key in backData.data) {
+                        $('input.' + key).val(backData.data[key]);
+                    }
+                    //改变img的图片路径
+                    $('img.user_pic').attr('src', backData.data.userPic)
+                }
+            })
+
+            //图片预览
+            //给input标签一个值改变事件
+            $('#exampleInputFile').on('change', function() {
+                let xhr = this.files[0]; //图片预览的this不用加上$()
+                let url = URL.createObjectURL(xhr)
+                $('img.user_pic').attr('src', url)
+            })
+
+
+            //完成个人信息修改
+            $('.btn-edit').on('click', function(e) {
+                e.preventDefault();
+                let fd1 = document.querySelector('form'); //需要获取的是dom对象
+                let fd2 = new FormData(fd1);
+
+                // let fd1 = new FormData($('form')[0]); //获取的是jq对象
+                // console.log(fd1);
+
+                //发送ajax请求
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.user_edit,
+                    contentType: false, //只要是使用formData提交，就需要用到这两个参数
+                    processData: false, //只要是使用formData提交，就需要用到这两个参数
+                    data: fd2,
+                    success: function(res) {
+                        if (res.code == 200) {
+                            alert('修改成功');
+                            parent.window.location.reload() //修改成功后自动刷新父窗口
+                        }
+                    }
+                })
+            })
+        })
+    </script>
 </body>
 
 </html>

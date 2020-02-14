@@ -72,6 +72,36 @@
             </div>
         </div>
     </div>
+
+    <!-- 准备一个 文章列表分类  模版 -->
+    <script id="lieBiao" type="text/html">
+        <option value="">所有分类</option>
+        {{each data}}
+        <option>{{$value.name}}</option>
+        {{/each}}
+    </script>
+
+    <script src="./libs/http.js"></script>
+    <script>
+        $(function() {
+            // 列表分类   下拉菜单
+            $.ajax({
+                type: 'get',
+                url: BigNew.category_list,
+                success: function(backData) {
+                    console.log(backData);
+                    let moban = template('lieBiao', backData);
+                    $('#selCategory').html(moban)
+
+                }
+            });
+
+            //渲染到主体上
+            $.ajax({
+
+            })
+        })
+    </script>
 </body>
 
 </html>

@@ -79,17 +79,18 @@
 
 
             //
-            $('.menu>.level01').on('click', function() {
-                $(this).addClass('active').siblings('div').removeClass('active');
+            $('.menu>.level01').on('click', function() { //给每个div添加点击事件
+                $(this).addClass('active').siblings('div').removeClass('active'); //点击到的div添加一个类：背景颜色
 
-                if ($(this).index() == 1) {
-                    $('ul.level02').slideToggle();
-                    $(this).find('b').toggleClass('rotate0');
-                    $('ul.level02>li:eq(0)').trigger('click');
+                if ($(this).index() == 1) { //判断：点击当前的div下标等于1的执行以下代码
+                    $('ul.level02').slideToggle(); //ul隐藏就显示，显示就隐藏
+                    $(this).find('b').toggleClass('rotate0'); //点击当前的div后代b有这个类就删除，没有这个类就添加
+                    $('ul.level02>li:eq(0)').trigger('click'); //给当前的ul的下标为0的li使用触发器触发点击事件
                 }
 
+                //给每个小li 添加点击事件
                 $('ul.level02>li').on('click', function() {
-                    $(this).addClass('active').siblings('li').removeClass('active')
+                    $(this).addClass('active').siblings('li').removeClass('active') //点击到的li就会有相应的一个类添加：字体变颜色
                 })
             })
 
