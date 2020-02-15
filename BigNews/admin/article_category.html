@@ -52,28 +52,30 @@
     </div>
 
     <!-- 模态框 -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="exampleModalLabel">New message</h4>
+                    <h4 class="modal-title" id="myModalLabel">新增分类</h4>
                 </div>
                 <div class="modal-body">
                     <form>
+                        <!-- 隐藏域 -->
+                        <input type="hidden" id="categoryId" name="id">
                         <div class="form-group">
-                            <label for="recipient-name" class="control-label">Recipient:</label>
+                            <label for="recipient-name" class="control-label">分类名称:</label>
                             <input type="text" class="form-control" id="recipient-name">
                         </div>
                         <div class="form-group">
-                            <label for="message-text" class="control-label">Message:</label>
-                            <textarea class="form-control" id="message-text"></textarea>
+                            <label for="message-text" class="control-label">分类别名:</label>
+                            <textarea class="form-control" id="message-text" style="resize:none"></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Send message</button>
+                    <button type="button" class="btn btn-default btn-quxiao" data-dismiss="modal">取消</button>
+                    <button type="button" id="btnAddOrEdit" class="btn btn-primary">新增</button>
                 </div>
             </div>
         </div>
@@ -89,8 +91,8 @@
             <td>{{$value.name}}</td>
             <td>{{$value.slug}}</td>
             <td class="text-center">
-                <a href="javascript:void(0)" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
-                <a href="javascript:void(0)" data-id="{{$value.id}}" class="btn btn-danger btn-xs btn-delete">删除</a>
+                <a href="javascript:void(0)" data-id={{$value.id}} data-toggle="modal" data-target="#myModal" class=" btn btn-info btn-xs">编辑</a>
+                <a href="javascript:void(0)" data-id={{$value.id}} class="btn btn-danger btn-xs btn-delete">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -106,41 +108,89 @@
                     url: BigNew.category_list,
                     success: function(backData) {
                         console.log(backData);
-                        let tian = template('moBan', backData);
-                        $('tbody').html(tian);
+                        if (backData.code == 200) {
+                            let tian = template('moBan', backData);
+                            $('tbody').html(tian);
+                        }
                     }
                 });
             };
 
+            //新增和编辑共用一个模态框代码处理
+            //show 方法调用之后立即触发该事件。
+            //如果是通过点击某个作为触发器的元素
+            //则此元素可以通过事件的 relatedTarget 属性进行访问。
+            $('#myModal').on('show.bs.modal', function(e) {
+                //判断当前弹出框是否为新增按钮点出来的
+                if (e.relatedTarget == $('#xinzengfenlei')[0]) {
+                    //如果是新增按钮点出来的执行以下代码
+                    $('#myModalLabel').text('新增分类')
+                    $('#btnAddOrEdit').text('新增').addClass('btn-primary').removeClass('btn-success')
+                } else {
+                    //如果不是新增按钮，是编辑按钮点出来的执行以下代码
+                    $('#myModalLabel').text('编辑分类');
+                    $('#btnAddOrEdit').text('编辑').addClass('btn-success').removeClass('btn-primary');
 
-            //新增
-            $('#xinzengfenlei').on('click', function() {
+                    $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text().trim());
+                    $('#message-text').val($(e.relatedTarget).parent().prev().text().trim());
+                    $('#categoryId').val($(e.relatedTarget).attr('data-id'))
 
-                let categoryName = $('#recipient-name').val();
-                let categorySlug = $('#message-text').val();
+                }
+            })
+
+            //新增/
+            $('#btnAddOrEdit').on('click', function() {
                 // 发送ajax 新增请求
-                $.ajax({
-                    type: 'post',
-                    url: BigNew.category_add,
-                    data: {
-                        name: categoryName,
-                        slug: categorySlug
-                    },
-                    success: function(backData) {
-                        if (backData.code == 201) {
-                            // 关闭模态框
-                            $('#myModal').modal('hide');
-                            // 调用请求函数
-                            getData();
-                            // 清空新增模态框
-                            $('#recipient-name').val();
-                            $('#message-text').val();
+                if ($(this).hasClass('btn-primary')) {
+                    let categoryName = $('#recipient-name').val().trim();
+                    let categorySlug = $('#message-text').val().trim();
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_add,
+                        data: {
+                            name: categoryName,
+                            slug: categorySlug
+                        },
+                        success: function(backData) {
+                            console.log(backData);
+                            if (backData.code == 201) {
+                                //新增成功,就应该隐藏模态框,以及重新加载数据
+                                $('#myModal').modal('hide')
+                                getData();
+                                //清空输入框
+                                $('#recipient-name').val("");
+                                $('#message-text').val("");
+                            }
                         }
-                    }
-                });
+                    });
+                } else { //编辑
+                    //获取到三个文本框
+                    let categoryId = $('#categoryId').val().trim();
+                    let categoryName = $('#recipient-name').val().trim();
+                    let categoryText = $('#message-text').val().trim(); //获取到id
+                    //发送ajax请求
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_edit,
+                        data: {
+                            id: categoryId,
+                            name: categoryName,
+                            slug: categoryText,
+                        },
+                        success: function(backData) {
+                            $('#myModal').modal('hide')
+                            getData()
+                        }
+                    })
+
+                }
 
             });
 
+            //点取消按钮清空文本框里面的值
+            $('.btn-quxiao').on('click', function() {
+                $('#myModal form')[0].reset()
+            })
 
             //删除
             //用委托注册
@@ -154,7 +204,9 @@
                             id: id,
                         },
                         success: function(backData) {
-                            getData();
+                            if (backData.code == 204) {
+                                getData();
+                            }
                         }
 
                     })
